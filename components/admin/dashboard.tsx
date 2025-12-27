@@ -121,14 +121,14 @@ export default function Dashboard() {
       .from("player_registrations")
       .select(
         `
-          id,
-          full_name,
-          birth_date,
-          phone,
-          created_at,
-          venues:venue_id ( id, name, place ),
-          categories:category_id ( id, name, year_from, year_to, sort_order )
-        `
+    id,
+    full_name,
+    birth_date,
+    phone,
+    created_at,
+    venue:venues ( id, name, place ),
+    category:categories ( id, name, year_from, year_to, sort_order )
+  `
       )
       .order("created_at", { ascending: false });
 
@@ -142,8 +142,8 @@ export default function Dashboard() {
         birth_date: r.birth_date,
         phone: r.phone,
         created_at: r.created_at,
-        venue: r.venues ?? null,
-        category: r.categories ?? null,
+        venue: r.venue ?? null,
+        category: r.category ?? null,
       }));
       setRows(mapped);
     }
