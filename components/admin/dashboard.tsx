@@ -5,8 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import HorariosAdmin from "@/components/admin/horariosAdmin";
+import SedesAdmin from "@/components/admin/sedesAdmin";
 import {
-  LayoutDashboard,
   Users,
   MapPin,
   Tags,
@@ -101,7 +102,11 @@ function exportCSV(rows: RegistrationRow[]) {
   URL.revokeObjectURL(url);
 }
 
+type AdminView = "registros" | "horarios" | "sedes" | "categorias";
+
 export default function Dashboard() {
+  const [active, setActive] = useState<AdminView>("registros");
+
   const [q, setQ] = useState("");
   const [sedeSel, setSedeSel] = useState("Todas");
   const [catSel, setCatSel] = useState("Todas");
@@ -275,7 +280,7 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              <Nav />
+              <Nav active={active} onChange={(v) => setActive(v)} />
 
               <div className="mt-auto pt-4 border-t border-white/10">
                 <button
@@ -302,7 +307,7 @@ export default function Dashboard() {
             </div>
 
             <div className="px-5 pb-5 overflow-y-auto flex-1">
-              <Nav />
+              <Nav active={active} onChange={(v) => setActive(v)} />
             </div>
 
             <div className="px-5 py-5 border-t border-white/10 bg-black/20">
@@ -328,8 +333,9 @@ export default function Dashboard() {
         </aside>
 
         {/* Main */}
+        {/* Main */}
         <main className="flex-1">
-          {/* Topbar */}
+          {/* Topbar (siempre visible) */}
           <div className="sticky top-0 z-40 border-b border-white/10 bg-black/50 backdrop-blur-md">
             <div className="mx-auto max-w-7xl px-6 md:px-10 py-3 flex items-center gap-3">
               <button
@@ -347,271 +353,345 @@ export default function Dashboard() {
                 <span className="text-[#FF2A4D] font-extrabold">
                   Toluca Altas Montañas
                 </span>
+
+                {/* opcional: mostrar pestaña actual */}
+                <ChevronRight size={16} className="text-white/35" />
+                <span className="font-extrabold text-white/80">
+                  {active === "registros"
+                    ? "Registros"
+                    : active === "horarios"
+                    ? "Horarios"
+                    : active === "sedes"
+                    ? "Sedes"
+                    : "Categorías"}
+                </span>
               </div>
 
+              {/* Acciones: solo para Registros */}
               <div className="ml-auto flex items-center gap-2">
-                <button
-                  onClick={load}
-                  className="h-10 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition flex items-center gap-2 text-sm font-extrabold"
-                  disabled={loading}
-                >
-                  <RefreshCw
-                    size={16}
-                    className={loading ? "animate-spin" : ""}
-                  />
-                  Refrescar
-                </button>
+                {active === "registros" ? (
+                  <>
+                    <button
+                      onClick={load}
+                      className="h-10 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition flex items-center gap-2 text-sm font-extrabold"
+                      disabled={loading}
+                    >
+                      <RefreshCw
+                        size={16}
+                        className={loading ? "animate-spin" : ""}
+                      />
+                      Refrescar
+                    </button>
 
-                <button
-                  onClick={() => exportCSV(data.filtrados)}
-                  className="h-10 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition flex items-center gap-2 text-sm font-extrabold"
-                >
-                  <Download size={16} />
-                  Exportar
-                </button>
+                    <button
+                      onClick={() => exportCSV(data.filtrados)}
+                      className="h-10 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition flex items-center gap-2 text-sm font-extrabold"
+                    >
+                      <Download size={16} />
+                      Exportar
+                    </button>
+                  </>
+                ) : (
+                  // opcional: acciones genéricas cuando no es registros
+                  <button
+                    onClick={() =>
+                      window.scrollTo({ top: 0, behavior: "smooth" })
+                    }
+                    className="h-10 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition flex items-center gap-2 text-sm font-extrabold"
+                  >
+                    ↑ Arriba
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Header */}
-          <section className="mx-auto max-w-7xl px-6 md:px-10 pt-6">
-            <div className={cn(panel, "p-6 sm:p-7 relative overflow-hidden")}>
-              <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(700px_220px_at_20%_0%,rgba(213,0,50,.22),transparent_55%)]" />
-              <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-[#D50032]/10 blur-3xl" />
+          {/* ========================= */}
+          {/* VISTAS (se renderiza UNA) */}
+          {/* ========================= */}
 
-              <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-                <div>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-[#D50032]/30 bg-[#D50032]/15 px-4 py-1 text-[11px] font-extrabold tracking-widest">
-                    ADMIN
-                  </div>
-
-                  <h1 className="mt-4 text-3xl sm:text-4xl font-extrabold tracking-tight">
-                    Registros{" "}
-                    <span className="text-[#FF2A4D]">de Interesados</span>
-                  </h1>
-
-                  <p className="mt-2 text-sm text-white/65">
-                    Consulta, filtra y administra los registros capturados desde
-                    la landing.
-                  </p>
-                </div>
-
-                <Link
-                  href="/#registro"
-                  className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-extrabold bg-[#D50032] hover:bg-[#B8002A] transition shadow-[0_14px_30px_rgba(213,0,50,.18)]"
+          {/* ✅ REGISTROS */}
+          {active === "registros" && (
+            <>
+              {/* Header */}
+              <section className="mx-auto max-w-7xl px-6 md:px-10 pt-6">
+                <div
+                  className={cn(panel, "p-6 sm:p-7 relative overflow-hidden")}
                 >
-                  ＋ Nuevo registro
-                </Link>
-              </div>
-            </div>
-          </section>
+                  <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(700px_220px_at_20%_0%,rgba(213,0,50,.22),transparent_55%)]" />
+                  <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-[#D50032]/10 blur-3xl" />
 
-          {/* Content */}
-          <section className="mx-auto max-w-7xl px-6 md:px-10 py-6 space-y-5">
-            {error ? (
-              <div className="rounded-xl border border-[#D50032]/25 bg-[#D50032]/10 p-4 text-sm text-[#FFD1DA]">
-                <b className="mr-2">⚠</b>
-                {error}
-              </div>
-            ) : null}
-
-            {/* KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Kpi
-                icon={<Users size={18} />}
-                title="Registros totales"
-                value={data.total}
-                hint="Global"
-              />
-              <Kpi
-                icon={<CalendarDays size={18} />}
-                title="Últimos 30 días"
-                value={data.last30}
-                hint="Actividad"
-              />
-              <Kpi
-                icon={<MapPin size={18} />}
-                title="Sedes"
-                value={data.sedesCount}
-                hint="Distribución"
-              />
-              <Kpi
-                icon={<Tags size={18} />}
-                title="Categorías"
-                value={data.catsCount}
-                hint="Academia"
-              />
-            </div>
-
-            {/* Filters */}
-            <div className={cn(soft, "p-4 sm:p-5")}>
-              <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
-                <div className="flex flex-col md:flex-row gap-3 w-full">
-                  <div className="flex-1 relative">
-                    <Search
-                      size={16}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40"
-                    />
-                    <input
-                      value={q}
-                      onChange={(e) => setQ(e.target.value)}
-                      placeholder="Buscar por nombre, teléfono, sede o categoría…"
-                      className={cn(input, "pl-11")}
-                    />
-                  </div>
-
-                  <select
-                    value={sedeSel}
-                    onChange={(e) => setSedeSel(e.target.value)}
-                    className={cn(select, "md:w-64")}
-                  >
-                    {data.sedes.map((s) => (
-                      <option key={s} value={s} className="bg-zinc-950">
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-
-                  <select
-                    value={catSel}
-                    onChange={(e) => setCatSel(e.target.value)}
-                    className={cn(select, "md:w-64")}
-                  >
-                    {data.categorias.map((c) => (
-                      <option key={c} value={c} className="bg-zinc-950">
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="text-sm text-white/60">
-                  Mostrando:{" "}
-                  <b className="text-white">
-                    {loading ? "…" : data.filtrados.length}
-                  </b>
-                </div>
-              </div>
-            </div>
-
-            {/* Table */}
-            <div className={cn(panel, "overflow-hidden")}>
-              <div className="px-4 sm:px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#D50032]" />
-                  <h2 className="font-extrabold">Listado</h2>
-                  <span className="text-xs text-white/60">
-                    ({loading ? "…" : data.filtrados.length})
-                  </span>
-                </div>
-              </div>
-
-              <div className="hidden md:grid grid-cols-12 gap-3 px-4 sm:px-6 py-3 border-t border-white/10 text-[11px] font-extrabold uppercase tracking-[0.18em] text-white/60 bg-black/25">
-                <div className="col-span-4">Jugador</div>
-                <div className="col-span-2">Edad</div>
-                <div className="col-span-2">Teléfono</div>
-                <div className="col-span-2">Categoría</div>
-                <div className="col-span-1">Sede</div>
-                <div className="col-span-1 text-right">Acciones</div>
-              </div>
-
-              <div className="divide-y divide-white/10">
-                {loading ? (
-                  <div className="px-4 sm:px-6 py-10 text-white/60">
-                    Cargando…
-                  </div>
-                ) : data.filtrados.length === 0 ? (
-                  <div className="px-4 sm:px-6 py-10 text-white/60">
-                    No hay resultados con esos filtros.
-                  </div>
-                ) : (
-                  data.filtrados.map((r) => {
-                    const sede = normalize(r.venue?.name, "Sin sede");
-                    const cat = normalize(r.category?.name, "Sin categoría");
-                    const age = calcAge(r.birth_date);
-
-                    return (
-                      <div
-                        key={r.id}
-                        className="grid grid-cols-12 gap-3 px-4 sm:px-6 py-4 items-center hover:bg-white/[0.03] transition"
-                      >
-                        {/* Jugador */}
-                        <div className="col-span-12 md:col-span-4 flex items-center gap-3 min-w-0">
-                          <div className="h-10 w-10 rounded-xl bg-black/40 border border-white/10 grid place-items-center font-extrabold">
-                            {(
-                              String(r.full_name ?? "X")[0] || "X"
-                            ).toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="font-extrabold truncate">
-                              {r.full_name}
-                            </div>
-                            <div className="text-xs text-white/60 truncate">
-                              {formatFecha(r.created_at)}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Edad */}
-                        <div className="col-span-6 md:col-span-2 text-white/80">
-                          {age == null ? "—" : `${age} años`}
-                        </div>
-
-                        {/* Tel */}
-                        <div className="col-span-6 md:col-span-2 flex items-center gap-2">
-                          <Phone size={16} className="text-white/45" />
-                          <span className="font-semibold">
-                            {r.phone ?? "—"}
-                          </span>
-                        </div>
-
-                        {/* Cat */}
-                        <div className="col-span-6 md:col-span-2">
-                          <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold bg-[#D50032] text-white shadow-[0_12px_24px_rgba(213,0,50,.14)]">
-                            {cat}
-                          </span>
-                        </div>
-
-                        {/* Sede */}
-                        <div className="col-span-6 md:col-span-1">
-                          <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold bg-black/35 border border-white/10 text-white">
-                            {sede}
-                          </span>
-                        </div>
-
-                        {/* Acciones */}
-                        <div className="col-span-12 md:col-span-1 md:justify-end flex gap-2">
-                          <button
-                            onClick={() => copyPhone(r.phone ?? "")}
-                            className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition grid place-items-center"
-                            title="Copiar teléfono"
-                          >
-                            <Copy size={16} />
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              alert(
-                                `Jugador: ${r.full_name}\nTel: ${r.phone}\nSede: ${sede}\nCategoría: ${cat}`
-                              )
-                            }
-                            className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition grid place-items-center"
-                            title="Ver"
-                          >
-                            <Eye size={16} />
-                          </button>
-                        </div>
+                  <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div>
+                      <div className="inline-flex items-center gap-2 rounded-full border border-[#D50032]/30 bg-[#D50032]/15 px-4 py-1 text-[11px] font-extrabold tracking-widest">
+                        ADMIN
                       </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
 
-            <p className="text-center text-xs text-white/50 pt-1">
-              Toluca Altas Montañas • Panel administrativo
-            </p>
-          </section>
+                      <h1 className="mt-4 text-3xl sm:text-4xl font-extrabold tracking-tight">
+                        Registros{" "}
+                        <span className="text-[#FF2A4D]">de Interesados</span>
+                      </h1>
+
+                      <p className="mt-2 text-sm text-white/65">
+                        Consulta, filtra y administra los registros capturados
+                        desde la landing.
+                      </p>
+                    </div>
+
+                    <Link
+                      href="/#registro"
+                      className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-extrabold bg-[#D50032] hover:bg-[#B8002A] transition shadow-[0_14px_30px_rgba(213,0,50,.18)]"
+                    >
+                      ＋ Nuevo registro
+                    </Link>
+                  </div>
+                </div>
+              </section>
+
+              {/* Content */}
+              <section className="mx-auto max-w-7xl px-6 md:px-10 py-6 space-y-5">
+                {error ? (
+                  <div className="rounded-xl border border-[#D50032]/25 bg-[#D50032]/10 p-4 text-sm text-[#FFD1DA]">
+                    <b className="mr-2">⚠</b>
+                    {error}
+                  </div>
+                ) : null}
+
+                {/* KPIs */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Kpi
+                    icon={<Users size={18} />}
+                    title="Registros totales"
+                    value={data.total}
+                    hint="Global"
+                  />
+                  <Kpi
+                    icon={<CalendarDays size={18} />}
+                    title="Últimos 30 días"
+                    value={data.last30}
+                    hint="Actividad"
+                  />
+                  <Kpi
+                    icon={<MapPin size={18} />}
+                    title="Sedes"
+                    value={data.sedesCount}
+                    hint="Distribución"
+                  />
+                  <Kpi
+                    icon={<Tags size={18} />}
+                    title="Categorías"
+                    value={data.catsCount}
+                    hint="Academia"
+                  />
+                </div>
+
+                {/* Filters */}
+                <div className={cn(soft, "p-4 sm:p-5")}>
+                  <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+                    <div className="flex flex-col md:flex-row gap-3 w-full">
+                      <div className="flex-1 relative">
+                        <Search
+                          size={16}
+                          className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40"
+                        />
+                        <input
+                          value={q}
+                          onChange={(e) => setQ(e.target.value)}
+                          placeholder="Buscar por nombre, teléfono, sede o categoría…"
+                          className={cn(input, "pl-11")}
+                        />
+                      </div>
+
+                      <select
+                        value={sedeSel}
+                        onChange={(e) => setSedeSel(e.target.value)}
+                        className={cn(select, "md:w-64")}
+                      >
+                        {data.sedes.map((s) => (
+                          <option key={s} value={s} className="bg-zinc-950">
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={catSel}
+                        onChange={(e) => setCatSel(e.target.value)}
+                        className={cn(select, "md:w-64")}
+                      >
+                        {data.categorias.map((c) => (
+                          <option key={c} value={c} className="bg-zinc-950">
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="text-sm text-white/60">
+                      Mostrando:{" "}
+                      <b className="text-white">
+                        {loading ? "…" : data.filtrados.length}
+                      </b>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Table */}
+                <div className={cn(panel, "overflow-hidden")}>
+                  <div className="px-4 sm:px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#D50032]" />
+                      <h2 className="font-extrabold">Listado</h2>
+                      <span className="text-xs text-white/60">
+                        ({loading ? "…" : data.filtrados.length})
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="hidden md:grid grid-cols-12 gap-3 px-4 sm:px-6 py-3 border-t border-white/10 text-[11px] font-extrabold uppercase tracking-[0.18em] text-white/60 bg-black/25">
+                    <div className="col-span-4">Jugador</div>
+                    <div className="col-span-2">Edad</div>
+                    <div className="col-span-2">Teléfono</div>
+                    <div className="col-span-2">Categoría</div>
+                    <div className="col-span-1">Sede</div>
+                    <div className="col-span-1 text-right">Acciones</div>
+                  </div>
+
+                  <div className="divide-y divide-white/10">
+                    {loading ? (
+                      <div className="px-4 sm:px-6 py-10 text-white/60">
+                        Cargando…
+                      </div>
+                    ) : data.filtrados.length === 0 ? (
+                      <div className="px-4 sm:px-6 py-10 text-white/60">
+                        No hay resultados con esos filtros.
+                      </div>
+                    ) : (
+                      data.filtrados.map((r) => {
+                        const sede = normalize(r.venue?.name, "Sin sede");
+                        const cat = normalize(
+                          r.category?.name,
+                          "Sin categoría"
+                        );
+                        const age = calcAge(r.birth_date);
+
+                        return (
+                          <div
+                            key={r.id}
+                            className="grid grid-cols-12 gap-3 px-4 sm:px-6 py-4 items-center hover:bg-white/[0.03] transition"
+                          >
+                            {/* Jugador */}
+                            <div className="col-span-12 md:col-span-4 flex items-center gap-3 min-w-0">
+                              <div className="h-10 w-10 rounded-xl bg-black/40 border border-white/10 grid place-items-center font-extrabold">
+                                {(
+                                  String(r.full_name ?? "X")[0] || "X"
+                                ).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-extrabold truncate">
+                                  {r.full_name}
+                                </div>
+                                <div className="text-xs text-white/60 truncate">
+                                  {formatFecha(r.created_at)}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Edad */}
+                            <div className="col-span-6 md:col-span-2 text-white/80">
+                              {age == null ? "—" : `${age} años`}
+                            </div>
+
+                            {/* Tel */}
+                            <div className="col-span-6 md:col-span-2 flex items-center gap-2">
+                              <Phone size={16} className="text-white/45" />
+                              <span className="font-semibold">
+                                {r.phone ?? "—"}
+                              </span>
+                            </div>
+
+                            {/* Cat */}
+                            <div className="col-span-6 md:col-span-2">
+                              <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold bg-[#D50032] text-white shadow-[0_12px_24px_rgba(213,0,50,.14)]">
+                                {cat}
+                              </span>
+                            </div>
+
+                            {/* Sede */}
+                            <div className="col-span-6 md:col-span-1">
+                              <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold bg-black/35 border border-white/10 text-white">
+                                {sede}
+                              </span>
+                            </div>
+
+                            {/* Acciones */}
+                            <div className="col-span-12 md:col-span-1 md:justify-end flex gap-2">
+                              <button
+                                onClick={() => copyPhone(r.phone ?? "")}
+                                className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition grid place-items-center"
+                                title="Copiar teléfono"
+                              >
+                                <Copy size={16} />
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  alert(
+                                    `Jugador: ${r.full_name}\nTel: ${r.phone}\nSede: ${sede}\nCategoría: ${cat}`
+                                  )
+                                }
+                                className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition grid place-items-center"
+                                title="Ver"
+                              >
+                                <Eye size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-center text-xs text-white/50 pt-1">
+                  Toluca Altas Montañas • Panel administrativo
+                </p>
+              </section>
+            </>
+          )}
+
+          {/* ✅ HORARIOS */}
+          {active === "horarios" && (
+            <section className="mx-auto max-w-7xl px-6 md:px-10 py-6">
+              <HorariosAdmin
+                panelClass={panel}
+                softClass={soft}
+                inputClass={input}
+                selectClass={select}
+              />
+            </section>
+          )}
+
+          {/* ✅ SEDES */}
+          {active === "sedes" && (
+            <section className="mx-auto max-w-7xl px-6 md:px-10 py-6">
+              <SedesAdmin
+                panelClass={panel}
+                softClass={soft}
+                inputClass={input}
+              />
+            </section>
+          )}
+
+          {/* ✅ CATEGORÍAS (si aún no lo tienes, deja un placeholder) */}
+          {active === "categorias" && (
+            <section className="mx-auto max-w-7xl px-6 md:px-10 py-6">
+              <div className={cn(panel, "p-6 text-white/70")}>
+                Aquí irá el CRUD de categorías (si quieres te lo armo igual que
+                sedes/horarios).
+              </div>
+            </section>
+          )}
         </main>
       </div>
     </div>
@@ -634,48 +714,52 @@ function Brand() {
   );
 }
 
-function Nav() {
+function Nav({
+  active,
+  onChange,
+}: {
+  active: "registros" | "horarios" | "sedes" | "categorias";
+  onChange: (v: "registros" | "horarios" | "sedes" | "categorias") => void;
+}) {
   const item =
     "w-full flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-extrabold transition border";
+
+  const activeItem =
+    "bg-[#D50032] text-white border-[#D50032] shadow-[0_14px_30px_rgba(213,0,50,.18)]";
+
+  const idleItem = "bg-white/0 text-white border-white/0 hover:bg-white/[0.06]";
+
   return (
     <nav className="space-y-2">
       <button
-        className={cn(
-          item,
-          "bg-[#D50032] text-white border-[#D50032] shadow-[0_14px_30px_rgba(213,0,50,.18)]"
-        )}
+        onClick={() => onChange("registros")}
+        className={cn(item, active === "registros" ? activeItem : idleItem)}
       >
-        <LayoutDashboard size={18} />
-        Dashboard
-      </button>
-
-      <button
-        className={cn(
-          item,
-          "bg-white/0 text-white border-white/0 hover:bg-white/[0.06]"
-        )}
-      >
-        <Users size={18} className="text-white/70" />
+        <Users size={18} className="text-white/80" />
         Registros
       </button>
 
       <button
-        className={cn(
-          item,
-          "bg-white/0 text-white border-white/0 hover:bg-white/[0.06]"
-        )}
+        onClick={() => onChange("horarios")}
+        className={cn(item, active === "horarios" ? activeItem : idleItem)}
       >
-        <MapPin size={18} className="text-white/70" />
+        <CalendarDays size={18} className="text-white/80" />
+        Horarios
+      </button>
+
+      <button
+        onClick={() => onChange("sedes")}
+        className={cn(item, active === "sedes" ? activeItem : idleItem)}
+      >
+        <MapPin size={18} className="text-white/80" />
         Sedes
       </button>
 
       <button
-        className={cn(
-          item,
-          "bg-white/0 text-white border-white/0 hover:bg-white/[0.06]"
-        )}
+        onClick={() => onChange("categorias")}
+        className={cn(item, active === "categorias" ? activeItem : idleItem)}
       >
-        <Tags size={18} className="text-white/70" />
+        <Tags size={18} className="text-white/80" />
         Categorías
       </button>
     </nav>
