@@ -137,6 +137,8 @@ Abrir: http://localhost:3000
 
 🧩 SQL (Esquema + Seeds)
 Esquema Base:
+
+```bash
 begin;
 
 -- 0) BORRAR SI YA EXISTE (OJO: elimina datos)
@@ -233,4 +235,4 @@ create index if not exists idx_player_reg_venue on public.player_registrations(v
 create index if not exists idx_player_reg_category on public.player_registrations(category_id);
 
 commit;
-$$
+```
