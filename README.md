@@ -236,3 +236,75 @@ create index if not exists idx_player_reg_category on public.player_registration
 
 commit;
 ```
+
+Seeds: Sedes, Categorías y Horarios
+
+```bash
+begin;
+
+-- SEDES
+insert into public.venues (name, place)
+values
+  ('Río Blanco', 'Río Blanco, Veracruz - Estadio 7 de Enero'),
+  ('Jalapilla', 'Jalapilla, Veracruz - Campo Jalapilla')
+on conflict (name, place) do nothing;
+
+-- CATEGORÍAS (corregidas)
+insert into public.categories (name, year_from, year_to, sort_order)
+values
+  ('Dientes de Leche', 2020, 2021, 1),
+  ('Chupón', 2018, 2019, 2),
+  ('Biberón', 2016, 2017, 3),
+  ('Pony', 2014, 2015, 4),
+  ('Infantil', 2012, 2013, 5),
+  ('Intermedia', 2010, 2011, 6),
+  ('Juvenil', 2008, 2009, 7)
+on conflict (name) do update
+set year_from = excluded.year_from,
+    year_to = excluded.year_to,
+    sort_order = excluded.sort_order;
+
+-- HORARIOS
+insert into public.schedules (category_id, venue_id, weekday, start_time, end_time, is_optional, note)
+select
+  c.id,
+  v.id,
+  s.weekday,
+  s.start_time,
+  s.end_time,
+  false,
+  null
+from public.categories c
+join public.venues v on v.name in ('Río Blanco', 'Jalapilla')
+join (
+  values
+    ('Río Blanco'::text, 1::smallint, '16:00'::time, '18:00'::time),
+    ('Río Blanco'::text, 2::smallint, '16:30'::time, '18:00'::time),
+    ('Río Blanco'::text, 3::smallint, '16:00'::time, '18:00'::time),
+    ('Jalapilla'::text, 2::smallint, '16:00'::time, '18:00'::time),
+    ('Jalapilla'::text, 3::smallint, '16:30'::time, '18:00'::time),
+    ('Jalapilla'::text, 4::smallint, '16:00'::time, '18:00'::time)
+) as s(venue_name, weekday, start_time, end_time)
+  on s.venue_name = v.name
+on conflict (category_id, venue_id, weekday, start_time, end_time) do nothing;
+
+commit;
+```
+
+<a name="scripts"></a>
+
+📜 Scripts
+
+```bash
+npm run dev     # desarrollo
+npm run build   # build
+npm run start   # producción
+npm run lint    # lint
+```
+
+<a name="screenshots"></a>
+
+```bash
+![Admin Dashboard](./docs/admin.jpg)
+![Landing](./docs/form.jpg)
+```
