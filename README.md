@@ -308,3 +308,25 @@ npm run lint    # lint
 ![Admin Dashboard](./docs/admin.jpg)
 ![Landing](./docs/form.jpg)
 ```
+
+<a name="troubleshooting"></a>
+
+🧯 Troubleshooting
+"cannot insert a non-DEFAULT value into column birth_year"
+birth_year es una columna generada.
+✅ Solución: No la incluyas en INSERT/UPDATE.
+
+"Could not find a relationship between player_registrations and venue_id"
+Esto pasa cuando PostgREST/Supabase no detecta la FK en caché o no existe FK.
+
+✅ Verifica:
+
+player_registrations.venue_id tenga references public.venues(id)
+
+player_registrations.category_id tenga references public.categories(id)
+
+Luego:
+
+Re-ejecuta schema cache (a veces solo reiniciando el editor/esperando unos segundos)
+
+O vuelve a correr el alter table si faltaba la FK
