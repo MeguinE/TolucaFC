@@ -305,4 +305,9 @@ npm run lint    # lint
 <a name="screenshots"></a>
 
 ![Admin Dashboard](./docs/admin.jpg)
+
 ![Landing](./docs/form.jpg)
+
+![Landing](./docs/adminpanel.jpg)
+
+![Landing](./docs/entrenaminetos.jpg)
