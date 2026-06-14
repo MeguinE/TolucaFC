@@ -111,7 +111,7 @@ export default function AboutSection({ className }: { className?: string }) {
             </ul>
           </GlassCard>
 
-          <GlassCard title="Antecedentes" accent="white">
+          <GlassCard title="Nuestra historia" accent="white">
             {about.background}
           </GlassCard>
         </div>

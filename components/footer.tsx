@@ -69,15 +69,15 @@ export default function Footer() {
                 <li>
                   <Link
                     className="hover:text-[#FF2A4D] transition"
-                    href="#galeria"
+                    href="#registro"
                   >
-                    Galería
+                    Registro
                   </Link>
                 </li>
                 <li>
                   <Link
                     className="hover:text-[#FF2A4D] transition"
-                    href="#contacto"
+                    href="#registro"
                   >
                     Contacto
                   </Link>

@@ -7,19 +7,40 @@ import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 
 const links = [
-  { href: "#about", label: "Nosotros" },
-  { href: "#training", label: "Categorías" },
-  { href: "#registro", label: "Registro" },
+  { href: "#about",    label: "Nosotros",   id: "about"    },
+  { href: "#training", label: "Categorías", id: "training" },
+  { href: "#registro", label: "Registro",   id: "registro" },
 ];
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
 
+  // Scroll effect
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Sección activa con IntersectionObserver
+  useEffect(() => {
+    const ids = links.map((l) => l.id);
+    const observers: IntersectionObserver[] = [];
+
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const obs = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) setActiveSection(id); },
+        { rootMargin: "-40% 0px -55% 0px" }
+      );
+      obs.observe(el);
+      observers.push(obs);
+    });
+
+    return () => observers.forEach((o) => o.disconnect());
   }, []);
 
   const close = () => setOpen(false);
@@ -45,8 +66,7 @@ export default function Header() {
               className="h-9 w-9 object-contain drop-shadow-[0_0_8px_rgba(255,0,0,0.5)]"
             />
             <span className="hidden sm:block text-white font-extrabold tracking-tight leading-tight text-sm">
-              Toluca{" "}
-              <span className="text-[#FF2A4D]">Altas Montañas</span>
+              Toluca <span className="text-[#FF2A4D]">Altas Montañas</span>
             </span>
           </Link>
 
@@ -56,9 +76,18 @@ export default function Header() {
               <Link
                 key={l.href}
                 href={l.href}
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-white/80 hover:text-white hover:bg-white/10 transition"
+                className={cn(
+                  "relative px-4 py-2 rounded-xl text-sm font-semibold transition",
+                  activeSection === l.id
+                    ? "text-white"
+                    : "text-white/70 hover:text-white hover:bg-white/10"
+                )}
               >
                 {l.label}
+                {/* Indicador activo */}
+                {activeSection === l.id && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-[#FF2A4D]" />
+                )}
               </Link>
             ))}
 
@@ -89,24 +118,11 @@ export default function Header() {
       {/* Drawer mobile */}
       {open && (
         <div className="fixed inset-0 z-[60] md:hidden">
-          {/* Overlay */}
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={close}
-          />
-
-          {/* Panel */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={close} />
           <div className="absolute right-0 top-0 h-full w-72 bg-zinc-950 border-l border-white/10 shadow-2xl flex flex-col">
-            {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
               <div className="flex items-center gap-3">
-                <Image
-                  src="/img/toluca-logo.png"
-                  alt="Logo"
-                  width={32}
-                  height={32}
-                  className="h-8 w-8 object-contain"
-                />
+                <Image src="/img/toluca-logo.png" alt="Logo" width={32} height={32} className="h-8 w-8 object-contain" />
                 <span className="text-sm font-extrabold text-white">
                   Toluca <span className="text-[#FF2A4D]">AM</span>
                 </span>
@@ -120,15 +136,22 @@ export default function Header() {
               </button>
             </div>
 
-            {/* Links */}
             <nav className="flex flex-col gap-1 p-4">
               {links.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
                   onClick={close}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/80 hover:text-white hover:bg-white/10 transition"
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition",
+                    activeSection === l.id
+                      ? "bg-white/10 text-white"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  )}
                 >
+                  {activeSection === l.id && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#FF2A4D]" />
+                  )}
                   {l.label}
                 </Link>
               ))}

@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 export default function Hero() {
   return (
     <section className="relative w-full overflow-hidden">
-      {/* ✅ 100% viewport SIEMPRE */}
       <div className="relative h-screen min-h-[700px] w-full">
         {/* Fondo */}
         <Image
@@ -29,7 +28,6 @@ export default function Hero() {
         <div className="relative z-10 h-full w-full">
           <div className="mx-auto h-full w-full max-w-7xl px-4 sm:px-6 md:px-10 flex items-center justify-center">
             <div className="w-full max-w-5xl">
-              {/* Card */}
               <div className="w-full rounded-3xl border border-white/30 bg-white/10 backdrop-blur-xl shadow-[0_30px_90px_rgba(0,0,0,.45)] overflow-hidden">
                 <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 md:gap-10 p-5 sm:p-6 md:p-10">
                   {/* Logo */}
@@ -45,7 +43,6 @@ export default function Hero() {
                       )}
                       priority
                     />
-
                     <span className="md:hidden inline-flex items-center rounded-full border border-[#D50032]/30 bg-[#D50032]/15 px-3 py-1 text-[11px] font-extrabold tracking-widest text-white">
                       ACADEMIA / FILIAL
                     </span>
@@ -82,7 +79,7 @@ export default function Hero() {
                     {/* Botones */}
                     <div className="mt-7 flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 justify-center md:justify-start">
                       <Link
-                        href="#contacto"
+                        href="#registro"
                         className={cn(
                           "h-11 px-6 rounded-xl inline-flex items-center justify-center",
                           "bg-[#D50032] hover:bg-[#B8002A] text-white font-extrabold",
@@ -96,7 +93,7 @@ export default function Hero() {
                           height={20}
                           className="h-5 w-5 mr-2"
                         />
-                        Contáctanos
+                        Solicitar prueba
                       </Link>
 
                       <Link
@@ -137,14 +134,13 @@ export default function Hero() {
                     </div>
 
                     <p className="mt-6 text-[11px] sm:text-xs md:text-sm text-white/70">
-                      Entrenamientos serios • Visorías • Desarrollo integral •
-                      Identidad y respeto
+                      Niños y jóvenes de 4 a 17 años • Río Blanco y Jalapilla •
+                      Visorías periódicas
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Nota inferior */}
               <p className="mt-5 text-center md:text-left text-[11px] sm:text-xs text-white/70">
                 Representamos a la región con orgullo. Disciplina hoy, victoria
                 mañana.
@@ -153,8 +149,31 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* ✅ (Opcional) Fade abajo para que el siguiente section no “corte” feo */}
+        {/* Fade abajo */}
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-black/40" />
+
+        {/* Flecha scroll */}
+        <a
+          href="#about"
+          aria-label="Ver mas"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 animate-bounce-arrow"
+        >
+          <span className="text-[11px] font-extrabold tracking-[0.2em] uppercase text-white/60">
+            Descubre mas
+          </span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-5 h-5 text-white/60"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </a>
       </div>
     </section>
   );

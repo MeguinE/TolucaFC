@@ -62,7 +62,26 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes bounce-arrow {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50%       { transform: translateY(8px); opacity: 1; }
+}
+.animate-bounce-arrow {
+  animation: bounce-arrow 1.6s ease-in-out infinite;
+}
+
+@keyframes wsp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37,211,102,.45); }
+  50%       { box-shadow: 0 0 0 10px rgba(37,211,102,0); }
+}
+.animate-wsp-pulse {
+  animation: wsp-pulse 2s ease-in-out infinite;
 }

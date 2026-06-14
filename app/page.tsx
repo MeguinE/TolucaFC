@@ -4,6 +4,7 @@ import Footer from "@/components/footer";
 import TrainingSection from "@/components/training-section.client";
 import AboutSection from "@/components/about-section";
 import PlayerRegistrationForm from "@/components/player-registration-form";
+import WhatsAppButton from "@/components/whatsapp-button";
 import { Suspense } from "react";
 
 export default function Home() {
@@ -32,6 +33,7 @@ export default function Home() {
       </Suspense>
       <PlayerRegistrationForm />
       <Footer />
+      <WhatsAppButton />
     </main>
   );
 }
