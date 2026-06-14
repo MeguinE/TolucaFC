@@ -1,16 +1,15 @@
 import Hero from "@/components/hero";
-
+import Header from "@/components/header";
 import Footer from "@/components/footer";
-
 import TrainingSection from "@/components/training-section.client";
-
 import AboutSection from "@/components/about-section";
-
 import PlayerRegistrationForm from "@/components/player-registration-form";
 import { Suspense } from "react";
+
 export default function Home() {
   return (
     <main className="min-h-screen flex flex-col">
+      <Header />
       {/* NAV FULL WIDTH *
 
       {/* HERO FULL WIDTH */}

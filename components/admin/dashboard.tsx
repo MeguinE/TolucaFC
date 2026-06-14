@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import HorariosAdmin from "@/components/admin/horariosAdmin";
 import SedesAdmin from "@/components/admin/sedesAdmin";
+import CategoriasAdmin from "@/components/admin/categoriasAdmin";
 import {
   Users,
   MapPin,
@@ -111,6 +112,10 @@ export default function Dashboard() {
   const [sedeSel, setSedeSel] = useState("Todas");
   const [catSel, setCatSel] = useState("Todas");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [detailRow, setDetailRow] = useState<RegistrationRow | null>(null);
+
+  const PAGE_SIZE = 15;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -160,6 +165,9 @@ export default function Dashboard() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Resetear página al cambiar filtros
+  useEffect(() => { setPage(1); }, [q, sedeSel, catSel]);
 
   const data = useMemo(() => {
     const safe = Array.isArray(rows) ? rows : [];
@@ -213,16 +221,23 @@ export default function Dashboard() {
       });
     }
 
+    const totalPages = Math.max(1, Math.ceil(filtrados.length / PAGE_SIZE));
+    const safePage = Math.min(page, totalPages);
+    const paginados = filtrados.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
     return {
       total: safe.length,
       last30,
       sedes,
       categorias,
       filtrados,
+      paginados,
+      totalPages,
+      safePage,
       sedesCount: Math.max(0, sedes.length - 1),
       catsCount: Math.max(0, categorias.length - 1),
     };
-  }, [rows, q, sedeSel, catSel]);
+  }, [rows, q, sedeSel, catSel, page, PAGE_SIZE]);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -256,6 +271,62 @@ export default function Dashboard() {
 
   return (
     <div className={shell}>
+      {/* Modal de detalle del jugador */}
+      {detailRow && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setDetailRow(null)}
+        >
+          <div
+            className={cn(panel, "w-full max-w-md overflow-hidden")}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-1 bg-[#D50032]" />
+            <div className="p-5 border-b border-white/10 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-11 w-11 rounded-xl bg-black/40 border border-white/10 grid place-items-center font-extrabold text-lg shrink-0">
+                  {(String(detailRow.full_name ?? "X")[0] || "X").toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <div className="font-extrabold truncate">{detailRow.full_name}</div>
+                  <div className="text-xs text-white/60 truncate">{formatFecha(detailRow.created_at)}</div>
+                </div>
+              </div>
+              <button
+                onClick={() => setDetailRow(null)}
+                className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition grid place-items-center shrink-0"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-5 grid grid-cols-2 gap-4">
+              {[
+                ["Edad", calcAge(detailRow.birth_date) != null ? `${calcAge(detailRow.birth_date)} años` : "—"],
+                ["Teléfono", detailRow.phone ?? "—"],
+                ["Categoría", normalize(detailRow.category?.name, "Sin categoría")],
+                ["Sede", normalize(detailRow.venue?.name, "Sin sede")],
+                ["Nacimiento", detailRow.birth_date ?? "—"],
+                ["Registro", formatFecha(detailRow.created_at)],
+              ].map(([k, v]) => (
+                <div key={k}>
+                  <div className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-white/50 mb-1">{k}</div>
+                  <div className="font-semibold text-sm text-white">{v}</div>
+                </div>
+              ))}
+            </div>
+            <div className="px-5 pb-5">
+              <button
+                onClick={() => copyPhone(detailRow.phone ?? "")}
+                className="w-full h-10 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition font-extrabold text-sm flex items-center justify-center gap-2"
+              >
+                <Copy size={15} />
+                Copiar teléfono
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Background premium */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_500px_at_20%_10%,rgba(213,0,50,.25),transparent_60%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_500px_at_85%_80%,rgba(213,0,50,.12),transparent_60%)]" />
@@ -567,7 +638,7 @@ export default function Dashboard() {
                         No hay resultados con esos filtros.
                       </div>
                     ) : (
-                      data.filtrados.map((r) => {
+                      data.paginados.map((r) => {
                         const sede = normalize(r.venue?.name, "Sin sede");
                         const cat = normalize(
                           r.category?.name,
@@ -635,13 +706,9 @@ export default function Dashboard() {
                               </button>
 
                               <button
-                                onClick={() =>
-                                  alert(
-                                    `Jugador: ${r.full_name}\nTel: ${r.phone}\nSede: ${sede}\nCategoría: ${cat}`
-                                  )
-                                }
+                                onClick={() => setDetailRow(r)}
                                 className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition grid place-items-center"
-                                title="Ver"
+                                title="Ver detalle"
                               >
                                 <Eye size={16} />
                               </button>
@@ -652,6 +719,27 @@ export default function Dashboard() {
                     )}
                   </div>
                 </div>
+
+                {/* Paginación */}
+                {data.totalPages > 1 && (
+                  <div className={cn(soft, "p-3 flex items-center justify-between gap-3 flex-wrap")}>
+                    <span className="text-sm text-white/60">
+                      Página <b className="text-white">{data.safePage}</b> de <b className="text-white">{data.totalPages}</b>
+                      {" "}· <b className="text-white">{data.filtrados.length}</b> registros
+                    </span>
+                    <div className="flex gap-1.5 flex-wrap">
+                      <PagBtn label="← Anterior" disabled={data.safePage <= 1} onClick={() => setPage((p) => p - 1)} />
+                      {Array.from({ length: Math.min(data.totalPages, 5) }, (_, i) => {
+                        const p = data.safePage <= 3 ? i + 1 : data.safePage - 2 + i;
+                        if (p < 1 || p > data.totalPages) return null;
+                        return (
+                          <PagBtn key={p} label={String(p)} active={p === data.safePage} onClick={() => setPage(p)} />
+                        );
+                      })}
+                      <PagBtn label="Siguiente →" disabled={data.safePage >= data.totalPages} onClick={() => setPage((p) => p + 1)} />
+                    </div>
+                  </div>
+                )}
 
                 <p className="text-center text-xs text-white/50 pt-1">
                   Toluca Altas Montañas • Panel administrativo
@@ -683,13 +771,14 @@ export default function Dashboard() {
             </section>
           )}
 
-          {/* ✅ CATEGORÍAS (si aún no lo tienes, deja un placeholder) */}
+          {/* ✅ CATEGORÍAS */}
           {active === "categorias" && (
             <section className="mx-auto max-w-7xl px-6 md:px-10 py-6">
-              <div className={cn(panel, "p-6 text-white/70")}>
-                Aquí irá el CRUD de categorías (si quieres te lo armo igual que
-                sedes/horarios).
-              </div>
+              <CategoriasAdmin
+                panelClass={panel}
+                softClass={soft}
+                inputClass={input}
+              />
             </section>
           )}
         </main>
@@ -763,6 +852,34 @@ function Nav({
         Categorías
       </button>
     </nav>
+  );
+}
+
+function PagBtn({
+  label,
+  onClick,
+  disabled,
+  active,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  active?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "h-9 px-3 rounded-xl border text-xs font-bold transition",
+        active
+          ? "bg-[#D50032] border-[#D50032] text-white"
+          : "bg-white/5 border-white/10 text-white/80 hover:bg-white/10",
+        disabled && "opacity-40 cursor-not-allowed"
+      )}
+    >
+      {label}
+    </button>
   );
 }
 
