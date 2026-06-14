@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import TiltCard from "@/components/tilt-card";
 
 type Venue = { id: string; name: string; place: string | null };
 
@@ -209,8 +210,8 @@ export default async function TrainingSection({
             const bg = categoryBg[cat.name] ?? fallbackBg;
 
             return (
+              <TiltCard key={cat.id}>
               <article
-                key={cat.id}
                 className={cn(
                   "relative rounded-3xl overflow-hidden",
                   "border border-white/10 bg-white/5 backdrop-blur-md",
@@ -329,6 +330,7 @@ export default async function TrainingSection({
 
                 <div className="relative z-10 h-px bg-white/10" />
               </article>
+              </TiltCard>
             );
           })}
         </div>
